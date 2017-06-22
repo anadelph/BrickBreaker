@@ -1,0 +1,96 @@
+#include <SFML/Graphics.hpp>
+
+#include "Brick.h"
+//#include "RoundedRectangle.h"
+
+using namespace sf;
+
+const float WINDOW_WIDTH = 800;
+const float WINDOW_HEIGHT = 600;
+const int NUM_ROWS = 10;
+const int NUM_COLS = 10;
+const float BRICK_WIDTH = WINDOW_WIDTH/NUM_COLS; // we want bricks to occupy the whole width of the screen, or the game becomes too easy
+const float BRICK_HEIGHT = WINDOW_HEIGHT / (2.5*NUM_ROWS); // bricks occupy top two-fifths of the screen
+const int FRAME_TIME = 30; //number of milliseconds per frame
+
+int i = 0;
+int j = 0;
+
+
+RectangleShape DrawBrick(Brick brick);
+
+
+
+/*
+void xCollisionEvent();
+void yCollisionEvent();
+
+void xCollisionBrick(brick brokenBrick);
+void yCollisionBrick(brick brokenBrick);
+*/
+
+int main() {
+	RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Brick Breaker");
+	Brick wall[NUM_COLS][NUM_ROWS]; // generates an array of bricks
+	for (i = 0; i < NUM_COLS; ++i) {
+		for (j = 0; j < NUM_ROWS; ++j){ 
+			wall[i][j].SetLeftX(i*BRICK_WIDTH); // sets boundary values for brick borders
+			wall[i][j].SetTopY(j*BRICK_HEIGHT); 
+			wall[i][j].SetRightX((i + 1)*BRICK_WIDTH); // we don't need rightX and bottomY defined to draw the bricks
+			wall[i][j].SetBottomY((j + 1)*BRICK_HEIGHT); // but they will be useful for collision detection
+		}
+	}
+
+	// run the program as long as the window is open
+	while (window.isOpen())
+	{
+		// check all the window's events that were triggered since the last iteration of the loop
+		Event event;
+		while (window.pollEvent(event))
+		{
+			// "close requested" event: we close the window
+			if (event.type == Event::Closed)
+				window.close();
+		}
+
+		// clear the window with black color
+		window.clear(Color::Black);
+
+		// draw everything here...
+		for (i = 0; i < NUM_COLS; ++i) {
+			for (j = 0; j < NUM_ROWS; ++j) {
+				window.draw(DrawBrick(wall[i][j]));
+			}
+		}
+		// window.draw(...);
+
+		// end the current frame
+		window.display();
+	}
+	
+	system("pause");
+	return EXIT_SUCCESS;
+}
+
+RectangleShape DrawBrick(Brick brick) {
+	RectangleShape rectangle;
+	if (brick.GetBreakCounter() > 0) { // i.e. we only want to draw the bricks that are NOT broken
+		rectangle.setPosition(Vector2f(brick.GetLeftX(), brick.GetTopY())); // places the brick
+		rectangle.setSize(Vector2f(BRICK_WIDTH, BRICK_HEIGHT)); // defines the size of the brick
+		//rectangle.setCornersRadius(5); // this out-commented line is for the "rounded rectangle" class I've been toying around with
+		rectangle.setOutlineColor(Color::Black);
+		rectangle.setOutlineThickness(1);
+		switch(brick.GetBreakCounter()) {
+		case 3:
+			rectangle.setFillColor(Color::Green); // bricks are initially green
+			break;
+		case 2:
+			rectangle.setFillColor(Color::Yellow); // after one hit they turn yellow
+			break;
+		case 1:
+			rectangle.setFillColor(Color::Red); // after another hit they turn red
+			break;
+		};
+	}
+	return rectangle; // if the brick is broken this will return a "dummy" rectangle
+}
